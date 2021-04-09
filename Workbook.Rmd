@@ -1,0 +1,150 @@
+---
+title: "Demonstrating the newspaper API"
+author: "Max Odsbjerg Pedersen"
+date: "3/15/2021"
+output: html_document
+---
+This Rmarkdown demonstrates the experimental API for publicly available data and metadata at the Royal Danish Library. It also demonstrates how to perform text mining on this data. We are going to see what words are significant to each month within a year of publications from the newspaper St. Croix Avis from year 1878. 
+
+Currently the API delivers public data from the Royal Danish Library's newspaper collection. Data from the Danish newspaper has to be older than 140 years to qualify af "public data". The API is presented in the Swagger UI and can return data in JSON, JSONL and CSV. Requests to the API are based on search queries in the Mediestream-platform. 
+
+Technical documentation and explanations on with fields are exported can be found on the [Swagger UI](http://labs.statsbiblioteket.dk/labsapi/api//api-docs?url=/labsapi/api/openapi.yaml)
+
+# Loading relevant libraries
+
+The dataset is processed in the software programme R, offering various methods for statistical analysis and graphic representation of the results. In R, one works with packages each adding numerous functionalities to the core functions of R. In this example, the relevant packages are:
+
+Documentation for each package: <br>
+*https://www.tidyverse.org/packages/ <br>
+*https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html <br>
+*https://lubridate.tidyverse.org/ <br>
+*https://ggplot2.tidyverse.org/ <br>
+*https://cran.r-project.org/web/packages/ggwordcloud/vignettes/ggwordcloud.html<br>
+
+Additional information about R: 
+https://www.r-project.org/
+
+```{r, message=FALSE}
+
+
+```
+
+# Loading data from St. Croix Avis 1878
+
+The dataset is loaded into R. This is done via a retrieve link from the API. This link is created by the [Swagger UI](http://labs.statsbiblioteket.dk/labsapi/api//api-docs?url=/labsapi/api/openapi.yaml), which is documentation and user interface for the API. Here we have specified that we want newspaper data from the St. Croix Avis from the year 1878. This data is loaded into R with the `read_csv` function since we also have specified the data format to be CSV in the Swagger UI: 
+
+```{r}
+croix <- read_csv("http://labs.statsbiblioteket.dk/labsapi/api/aviser/export/fields?query=py%3A1878%20AND%20familyId%3Astcroixavisdvi&fields=link&fields=recordID&fields=timestamp&fields=pwa&fields=cer&fields=fulltext_org&fields=pageUUID&fields=editionUUID&fields=titleUUID&fields=editionId&fields=familyId&fields=newspaper_page&fields=newspaper_edition&fields=lplace&fields=location_name&fields=location_coordinates&max=5000&structure=header&structure=content&format=CSV")
+```
+CSV is short for Comma Separated Values that is a way of structuring a dataset in plain text. CSV files are structured in columns separated by commas and in rows separated by lines. Each row in the data correspond to identified articles by the segmentations-process during the digitisation process of the newspapers.  
+In the output from the `read_csv`-function R tells us which columns are present in the dataset and what type of data it has recognised in the column's rows. Most of them are "col_character()", which means the rows in the column contains textual data (character signs). Others have the "col_double()", which means the rows in the column contains numbers. This is a question of datatypes, which can be very important when coding, but in the case of this workshop we won't work further with them.    
+
+# The text mining task
+Text mining is a term that covers a large variety of approaches and concrete methods. In this example we will use the tidytext approach, which is presented in the book [Text Mining with R - a tidy approach](https://www.tidytextmining.com). The method we will be employing is the term frequency - inversed document frequency. This method can be used to create little "summaries" of documents within a corpus by extracting the words that are most significant to each document. By doing this we can create a so-called distant reading of a large data corpus. In our case the corpus is the newspaper data from St. Croix Avis from the year 1878. Even though the newspaper was only releashed every Wednessday and Saturday the data is still so large that it would be cumbersome to read it all with our human eyes (close reading). So with the St. Croix Avis newspapers from 1878 as our data corpus what are our documents then? In this example we will use the months within the year 1878 as documents. Using the term frequency - inversed document frequency (tf-idf) we will create small "summaries" of the significant words within each months. This method will be described in more depth later. First we will focus on preparing our data for the monthly analysis. 
+
+## Extracting the months from the "timestamp" column
+Currently the only column we have containing temporal information is the column "timestamp". Let's examing this column:
+```{r}
+
+
+```
+The information stored in this column is pretty dense since it contain both year, month, day and hour, minute and second for the articles. In order to work with months as documents within the corpus of all the articles from St. Croix Avis from 1878 we have to extract the month from the "timestamp" column. We do this using the `month`-function from the lubridate-packages. This creates a new column called "m" for months:
+```{r}
+
+
+```
+
+## Tidy
+The data processing will be based on the Tidy Data Principle as it is implemented in the tidytext package. The notion is to take text and break it into individual words. In this way, there will be just one word per row in the dataset. This is achieved by using the `unnest_tokens`-function:
+
+```{r}
+
+
+```
+
+
+## Count words pr month
+Since we now has the text from the articles on the one word pr. row-format we can count the words to see, which words are used most frequently. Since we have prepared our month column we do the count within each month: 
+```{r}
+
+
+```
+Not surprisingly, particles are the most common words we find. This is not particularly interesting for us in this enquiry, as we want to see which words are specific to the individual month. The particles will appear in all month. The first step is finding a measurement that will allow us to compare the frequency of words across the months. We can do this by calculating the word’s, or the term’s, frequency: 
+
+$$frequence=\frac{n_{term}}{N_{month}}$$
+
+Before we can take this step, we need R to count how many words there are in each year. This is done by using the function `group_by` followed by `summarise`:
+```{r}
+
+
+
+```
+
+Then we add the total number of words to our dataframe, which we do with `left_join`:
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+Now we have the number we need to calculate the frequency of the words. Below we are calculating the word “the” in the August(8).
+
+
+
+$${frekvens for "the" in 8}=\frac{3934}{64822}=0.06068927$$
+
+
+
+
+
+
+By calculating the frequency of the terms, we can compare them across each month. However, it is not terribly interesting comparing the word “the” between months. Therefore, we need a way to “punish” words that occur frequently in all months. To achieve this, we are using inversed document frequency(idf):
+
+$$\textrm{idf}(term)=\ln(\frac{n}{N})$$
+n is the total number of documents (months, in our example) and N is the number of months in which the word occurs. 
+
+
+
+
+
+$$\textrm{idf}(the)=\ln(\frac{12}{12})=0$$
+Thus we punish words that occur with great frequency in all months or many months. Words that occur in all the months cannot really tell us much about a particular month. Those words will have an idf of 0 resulting in a tf_idf value that is also 0, because this is defined by multiplying tf with idf. 
+
+
+
+
+
+
+
+
+Luckily, R can easily calculate tf and tf_idf for all the words by using the bind_tf_idf function:
+
+```{r}
+
+
+
+```
+Nonetheless we still do not see any interesting words. This is because R lists all the words in an ascending order – lowest to highest. Instead, we will ask it to list them in a descending order – highest to lowest tf_idf:
+
+```{r}
+
+
+```
+Many people who have tip their toes in the text mining/data mining sea will have seen wordclouds showing the most used words in a text. I this visualisation we are going to create a wordcloud for each month showing the words with the highest tf_idf from that month. By doing so we will get a nice overview of what words are specific and important to each month. Remember that words which appear alot across the months will not show here. 
+```{r}
+
+
+```
+Let's see what is going on with "rioters" in October. Be using our intial dataframe we can specify that we are only interested in October and there after that we only want to see the articles that has the word "rioters" in them.
+
+```{r}
+
+
+```
+
+Contratulations! You have completed your very first text mining task and created an output! You are now ready ti venture further into the world of tidy text mining. This short introduction was based on the [Tidy Text Mining with R](https://www.tidytextmining.com)-book(Chapter 1 and 3). Now that you know how to use an R-markdown you can use the book to explore their methods! 
