@@ -73,7 +73,7 @@ Not surprisingly, particles are the most common words we find. This is not parti
 
 $$frequence=\frac{n_{term}}{N_{month}}$$
 
-Before we can take this step, we need R to count how many words there are in each year. This is done by using the function `group_by` followed by `summarise`:
+Before we can take this step, we need R to count how many words there are in each month. This is done by using the function `group_by` followed by `summarise`:
 ```{r}
 
 
@@ -96,7 +96,7 @@ Now we have the number we need to calculate the frequency of the words. Below we
 
 
 
-$${frekvens for "the" in 8}=\frac{3934}{64822}=0.06068927$$
+$$\text{frekvens for "the" in 8}=\frac{3934}{64822}=0.06068927$$
 
 
 
@@ -105,7 +105,7 @@ $${frekvens for "the" in 8}=\frac{3934}{64822}=0.06068927$$
 
 By calculating the frequency of the terms, we can compare them across each month. However, it is not terribly interesting comparing the word “the” between months. Therefore, we need a way to “punish” words that occur frequently in all months. To achieve this, we are using inversed document frequency(idf):
 
-$$\textrm{idf}(term)=\ln(\frac{n}{N})$$
+$$\textrm{idf}(term)=\ln(\frac{n_{\text{document}}}{n_{\text{documents containing term}}})$$
 n is the total number of documents (months, in our example) and N is the number of months in which the word occurs. 
 
 
