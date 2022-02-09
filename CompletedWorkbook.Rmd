@@ -141,7 +141,7 @@ Nonetheless we still do not see any interesting words. This is because R lists a
 croix_tfidf %>% 
   arrange(desc(tf_idf))
 ```
-Many people who have tip their toes in the text mining/data mining sea will have seen wordclouds showing the most used words in a text. I this visualisation we are going to create a wordcloud for each month showing the words with the highest tf_idf from that month. By doing so we will get a nice overview of what words are specific and important to each month. Remember that words which appear alot across the months will not show here. 
+Many people who have dipped their toes in the text mining/data mining sea will have seen wordclouds showing the most used words in a text. I this visualisation we are going to create a wordcloud for each month showing the words with the highest tf_idf from that month. By doing so we will get a nice overview of what words are specific and important to each month. Remember that words which appear alot across the months will not show here. 
 ```{r}
 croix_tfidf %>%
   arrange(desc(tf_idf)) %>%
@@ -169,4 +169,4 @@ croix %>%
   select(fulltext_org, timestamp, link)
 ```
 
-Contratulations! You have completed your very first text mining task and created an output! You are now ready ti venture further into the world of tidy text mining. This short introduction was based on the [Tidy Text Mining with R](https://www.tidytextmining.com)-book(Chapter 1 and 3). Now that you know how to use an R-markdown you can use the book to explore their methods! 
+Contratulations! You have completed your very first text mining task and created an output! You are now ready to venture further into the world of tidy text mining. This short introduction was based on the [Tidy Text Mining with R](https://www.tidytextmining.com)-book(Chapter 1 and 3). Now that you know how to use an R-markdown you can use the book to explore their methods! 
