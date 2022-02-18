@@ -7,6 +7,8 @@ The aim of this text mining workshop is to introduce newcomers to text mining an
 ## Data
 The dataset consists of newspapers from St. Croix more specifically the Danish newspaper "St. Croix Avis". Original prints of the newspaper have been collected and kept at the library back in the days. Throughout the years the number of newspapers collected have become so numerous that smarter and more space-efficient storage was needed. Older newspapers were therefore photographed and transfered to microfilm. In 2014 the microfilms was digitized both to further optimize storage and make the process of retrieving newspapers easier. The process of digitization also involved text recognition (called Optical Character Recognition; OCR) which made it possible to do free text searches through the newspapers. However OCR has ist challanges and pitfalls especially when the material that it is put to work on is digital renditions of photographed newspapers. OCR works very well on 'modern' characters and clear rendered documents but has some diffulties reading texts that have been through a number of renditions which can leave pieces of text unclear, this can result in OCR-mistakes where the text has not been recognised. 
 
+![](https://github.com/TokeJoMu/imagework/blob/main/CroixForside.png)
+
 The data is made available through an Application Programming Interface (API) which is a software that allows devices to share data. This particular API (http://labs.statsbiblioteket.dk/labsapi/api//api-docs?url=/labsapi/api/openapi.yaml) provides publicly available data and metadata from old newspapers at the Royal Libary's newspaper collection.
 
 ## Data processing
