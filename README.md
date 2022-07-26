@@ -20,3 +20,6 @@ The workshop is centered around the file "Workbook.Rmd", which is a notebook whi
 
 ## Methods and approaches
 The methods and approaches to text mining used in this workshop is based on the tidytext-principle. In this principle each word of your target text-element will be put on its own row, while retaining all other meta-data. For more information and also as post-workshop inspiration see: [Tidy Text Mining with R](https://www.tidytextmining.com). This workshop ows alot to this great book and is a combination of the chapters 1 and 3.
+
+## Philosophy of leaning
+In the workshops we aim at creating a safe room were total newcomers to code based data processing won't be afraid to ask questions and make mistakes and have errors, which is an inevitable part of working with code. 
