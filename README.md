@@ -1,5 +1,5 @@
 # Text Mining St. Croix Avis
-Material for the introduction to text mining workshop made for those interested in learning about digital methods and experience how coding can be used to work on larger bodies of text.
+Material for the introduction to text mining workshop made for those interested in learning about digital methods and experience how coding can be used to work on larger bodies of text. The workshops and the material was conceived as a introduction to text mining for students and other interested within the humanities. Since people from other fields have found the interested and they are more than welcome, but should be aware of the humanistic point of departure. 
 
 ## Aim
 The aim of this text mining workshop is to introduce absolute newcomers to text mining and working with data. This is done by attendees working with the methods and material themselves. The material used in the workshop is text based data and metadata form the newspaper St. Croix Avis from the 1878. The paper is written in English and Danish which allows for a broader body of attendees beyond danish speakers. We focus on the year 1878 to place the workshop in a histoical context, allowing the attendees to gather information about what news was covered and which keywords could be interesting during the time shortly before the end of European settlement of the island.
