@@ -164,8 +164,8 @@ Let's see what is going on with "rioters" in October. Be using our intial datafr
 
 ```{r}
 croix %>% 
-  filter(m == 10) %>% 
-  filter(str_detect(fulltext_org, "rioters")) %>% 
+  filter(m == 11) %>% 
+  filter(str_detect(fulltext_org, "Beboerne")) %>% 
   select(fulltext_org, timestamp, link)
 ```
 
