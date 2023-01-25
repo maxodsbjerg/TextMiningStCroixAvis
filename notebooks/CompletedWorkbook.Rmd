@@ -160,7 +160,13 @@ croix_tfidf %>%
        subtitle = "Importance determined by term frequency (tf) - inversed document frequency(idf)",
       caption = "Data from Mediestream Experimental API")
 ```
-Let's see what is going on with "rioters" in October. Be using our intial dataframe we can specify that we are only interested in October and there after that we only want to see the articles that has the word "rioters" in them.
+```{r}
+ggsave("../graphics/tf_idf_stcroix.png", width = 18, height = 13, units = "cm", bg = "white")
+```
+
+
+
+Let's see what is going on with "rioters" in October. By using our intial dataframe we can specify that we are only interested in October and there after that we only want to see the articles that has the word "rioters" in them.
 
 ```{r}
 croix %>% 
