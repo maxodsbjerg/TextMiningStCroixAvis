@@ -1,0 +1,180 @@
+---
+title: "Examining writings on rebels"
+author: "Max Odsbjerg Pedersen"
+date: "2023-01-23"
+output: html_document
+---
+
+
+# Loading relevant libraries
+
+The dataset is processed in the software programme R, offering various methods for statistical analysis and graphic representation of the results. In R, one works with packages each adding numerous functionalities to the core functions of R. In this example, the relevant packages are:
+
+Documentation for each package: <br>
+*https://www.tidyverse.org/packages/ <br>
+*https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html <br>
+*https://lubridate.tidyverse.org/ <br>
+*https://ggplot2.tidyverse.org/ <br>
+*https://cran.r-project.org/web/packages/ggwordcloud/vignettes/ggwordcloud.html<br>
+
+Additional information about R: 
+https://www.r-project.org/
+
+```{r, message=FALSE}
+library(tidyverse)
+library(tidytext)
+library(lubridate)
+library(ggwordcloud)
+```
+
+# Loading data from St. Croix Avis 1878
+
+The dataset is loaded into R. This is done via a retrieve link from the API. This link is created by the [Swagger UI](http://labs.statsbiblioteket.dk/labsapi/api//api-docs?url=/labsapi/api/openapi.yaml), which is documentation and user interface for the API. Here we have specified that we want newspaper data from the St. Croix Avis from the year 1878. This data is loaded into R with the `read_csv` function since we also have specified the data format to be CSV in the Swagger UI: 
+
+```{r}
+croix <- read_csv("http://labs.statsbiblioteket.dk/labsapi/api/aviser/export/fields?query=py%3A1878%20AND%20familyId%3Astcroixavisdvi&fields=link&fields=recordID&fields=timestamp&fields=pwa&fields=cer&fields=fulltext_org&fields=pageUUID&fields=editionUUID&fields=titleUUID&fields=editionId&fields=familyId&fields=newspaper_page&fields=newspaper_edition&fields=lplace&fields=location_name&fields=location_coordinates&max=5000&structure=header&structure=content&format=CSV")
+```
+CSV is short for Comma Separated Values that is a way of structuring a dataset in plain text. CSV files are structured in columns separated by commas and in rows separated by lines. Each row in the data correspond to identified articles by the segmentations-process during the digitisation process of the newspapers.  
+In the output from the `read_csv`-function R tells us which columns are present in the dataset and what type of data it has recognised in the column's rows. Most of them are "col_character()", which means the rows in the column contains textual data (character signs). Others have the "col_double()", which means the rows in the column contains numbers. This is a question of datatypes, which can be very important when coding, but in the case of this workshop we won't work further with them.    
+
+# The text mining task
+Text mining is a term that covers a large variety of approaches and concrete methods. In this example we will use the tidytext approach, which is presented in the book [Text Mining with R - a tidy approach](https://www.tidytextmining.com). The method we will be employing is the term frequency - inversed document frequency. This method can be used to create little "summaries" of documents within a corpus by extracting the words that are most significant to each document. By doing this we can create a so-called distant reading of a large data corpus. In our case the corpus is the newspaper data from St. Croix Avis from the year 1878. Even though the newspaper was only releashed every Wednessday and Saturday the data is still so large that it would be cumbersome to read it all with our human eyes (close reading). So with the St. Croix Avis newspapers from 1878 as our data corpus what are our documents then? In this example we will use the months within the year 1878 as documents. Using the term frequency - inversed document frequency (tf-idf) we will create small "summaries" of the significant words within each months. This method will be described in more depth later. First we will focus on preparing our data for the monthly analysis. 
+
+## Extracting the months from the "timestamp" column
+Currently the only column we have containing temporal information is the column "timestamp". Let's examing this column:
+```{r}
+croix %>% 
+  select(timestamp)
+```
+The information stored in this column is pretty dense since it contain both year, month, day and hour, minute and second for the articles. In order to work with months as documents within the corpus of all the articles from St. Croix Avis from 1878 we have to extract the month from the "timestamp" column. We do this using the `month`-function from the lubridate-packages. This creates a new column called "m" for months:
+```{r}
+croix %>% 
+  mutate(m = month(timestamp)) -> croix
+```
+
+
+# Text mining opgaven - N-grams
+
+Data behandlingen vil tage udgangspunkt i [Tidy Data-princippet](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) som den er implementeret i tidytext-pakken. Tankegangen er her at tage en tekst og splitte den op i mindre dele. Den typiske tilgang er at splitte teksten op i enkelte ord. På denne måde optræder der kun ét ord per række i datasættet. Men man kan også splitte teksten op i ordpar(eller ordtrioer, ordkvartetter osv.) Dette kaldes i text mining verdenen N-grams, da man i princippet kan lave sekvenser af præcis så mange ord, som man vil. Når man har med ordpar at gøre så kaldes de bigrams. 
+
+# Bigrams
+N-grams er overlappende så i et scenarie med bigrams bliver teksten "den glade kat går ad tagryggen" til:
+
+"den glade", "glade kat", "kat går","går ad","ad tagryggen", "tagryggen NA"
+
+Bemærk at det sidste ord i det sidste bigram er værdien "NA". Der er altså ikke noget sidste ord i det bigram.
+
+Ligesom før bruger vi `unnest_tokens`, men denne gang specificerer vi at vi vil have ordpar(bigrams):
+
+ONly riot months
+
+```{r}
+croix %>% 
+  filter(m %in% c(10,11,12)) %>% 
+  unnest_tokens(bigram, fulltext_org, token = "ngrams", n = 2) -> croix_bigrams
+```
+
+Lad os se det in action. Istedet for blot at skrive navnet på vores nye data frame og bladre i kolonnerne bruger vi nu pipen og funktionen `select` til kun at vælge vores nye kolonne:
+
+```{r}
+croix_bigrams %>% 
+  select(bigram)
+```
+
+Lige som vi kunne med lplace, så kan vi også optælle bigrams:
+
+```{r}
+croix_bigrams%>% 
+  count(bigram, sort = TRUE)
+```
+<br> Allerede her har vi en del interessante ordpar. Men der er noget der tyder på, at der er en del sammenhæng mellem tjenestefolk, der søger "condition", som i gammeldags sprogbrug er "tjenende stilling" eller en plads. Vi ser også OCR-fejlen "eondition" og den anden stavemåde "kondition".
+
+Desuden støder vi på stopord der forstyrer os. Ordpar med stopord kunne vi godt tænke os at sortere fra. Først skal vi dog have indlæst en stopordsliste:
+
+```{r message=FALSE}
+stopord <- read_csv("https://gist.githubusercontent.com/maxodsbjerg/4d1e3b1081ebba53a8d2c3aae2a1a070/raw/e1f63b4c81c15bb58a54a2f94673c97d75fe6a74/stopord_18.csv")
+```
+
+<br>
+
+Før vi kan fjerne ordpar hvor et af ordene er stopord, er vi dog nødt til at have splittet kolonnen "bigram" op i to: "word1", "word2":
+
+```{r}
+croix_bigrams %>% 
+  separate(bigram, c("word1", "word2"), sep = " ") ->croix_bigrams_separated
+```
+
+Derefter kan vi filtrere stopordene ud i begge kolonner, hvilket vi gemmer til en ny dataframe:
+
+```{r}
+croix_bigrams_separated %>% 
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) -> croix_bigrams_filtered
+```
+
+Dernæst kan vi optælle vores bigrams uden stopord
+
+```{r}
+croix_bigrams_filtered %>% 
+  count(word1, word2, sort = TRUE)
+```
+Det er nu helt tydeligt at det meget handler om tjenesteforhold. I særdeles folk der ønsker ansættelses. Men hvordan forholder det sig helt konkret med strikkeord? Hvilke ord bruges foran dem?
+
+Eftersom vi har bigram i to kolonner kan vi nu også styre præcis hvilket ord vi kigger på som ord nummer 2. Lad os prøve med "strikke-ord". Tricket her er funktionen `str_detect`, som får at vide at den leder ord der starter med "strik" og kan efterfølges af 0 eller flere bogstaver mellem a til z og æ og ø. "\\b" angiver at det efterfølgende s skal være starten af ordet. Denne måde at angive tekstmønstre på kaldes regulære udtryk og er en kraftfuld og avanceret måde at søge efter mønstre i tekst.
+
+```{r}
+croix_bigrams_filtered %>% 
+  filter(str_detect(word2, "\\bbeboer[a-zæø]*")) %>% 
+  count(word1, word2, sort = TRUE)
+```
+
+Vi ser stadig at "di strikt" spøger en smule, men der dukker pludselig en masse interessante bigrams op. En måde at visualisere det bedre på end en liste er gennem en netværks-graf. På listen oven for ses at flere af de hyppigt forekommende ordpar har "strikkegarn" som word2. I en netværksgraf vil strikkegarn altså blive et punkt, mens "uldent", "bomulds", "coul, og "couleurt" vil være punkter der peger ind mod "strikkegarn". På denne måde kan man på en ret overskuelig måde illustrere flere ords interne forhold.
+
+Allerførst gemmer vi den ovenstående optælling til en ny data frame, så vi kan arbejde videre med den:
+
+```{r}
+croix_bigrams_filtered %>% 
+  filter(str_detect(word2, "\\brebel[a-zæø]*|\\briot[a-zæø]*|\\bbeboer[a-zæø]*")) %>% 
+  count(word1, word2, sort = TRUE) -> uprising_bigrams_counts
+```
+
+Herefter bruger vi biblioteket "igraph" til at lave vores dataframe om til et netværksgraf-element. Inden da specificerer vi, at vi kun er interesserede i bigrams, der optræder mere en 8 gange:
+
+```{r, message=FALSE}
+library(igraph)
+bigram_graph <- uprising_bigrams_counts %>%
+  graph_from_data_frame()
+```
+
+Tilsidst bruger vi pakken "ggraph" til at visualisere netværket:
+
+```{r}
+library(ggraph)
+a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link(aes(edge_alpha = n), show.legend = FALSE,
+                 arrow = a, end_cap = circle(.07, 'inches')) +
+  geom_node_point(color = "darkgoldenrod4", size = 5) +
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+  theme_void()
+```
+
+Herved for vi altså på en overskuelig måde visualiseret de forskellige ords forhold. 
+
+For at gemme grafen bruger vi funktionen `ggsave`, hvor man angiver filnavn og type efterfulgt af bredde og højde og hvilken enhed, samt baggrundsfarven.
+
+```{r}
+ggsave("graphics/stcroix_uprising_bigrams.png", width = 28, height = 20, units = "cm", bg = "white")
+```
+
+# Fra distant reading til close reading
+
+Okay der er noget med en ny strikkebog. Hvordan går vi fra denne "distant reading"-indsigt frem til at, hvad der rent faktisk sker med den nye strikkebog. Altså bevægelsen fra distant reading til klassisk humanistisk nærlæsning. Gennem et par filtre kan vi faktisk ret hurtigt få links indtil Mediestream hvor man er tilbage helt tæt ved kilden:
+
+```{r}
+croix %>% 
+  filter(str_detect(fulltext_org, regex("escaped rioters", ignore_case = TRUE))) %>% 
+  select(fulltext_org, timestamp, link)
+```
+
+Følgende dokument er baseret på [Tidy Text Mining with R](https://www.tidytextmining.com)-bogen. Særligt kapitlerne 1 om tidyformatet generelt og 4 om n-grams. Bogen kan varmt anbefales til videre læsning og inspiration til andre undersøgelser som text mining kan.
