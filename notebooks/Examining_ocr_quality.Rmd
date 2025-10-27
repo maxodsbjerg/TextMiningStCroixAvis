@@ -1,0 +1,70 @@
+---
+title: "Evaluating OCR quality"
+output: html_document
+date: "2025-10-27"
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+croix <- read_csv("http://labs.statsbiblioteket.dk/labsapi/api/aviser/export/fields?query=py%3A1878%20AND%20familyId%3Astcroixavisdvi&fields=link&fields=recordID&fields=timestamp&fields=pwa&fields=cer&fields=fulltext_org&fields=pageUUID&fields=editionUUID&fields=titleUUID&fields=editionId&fields=familyId&fields=newspaper_page&fields=newspaper_edition&fields=lplace&fields=location_name&fields=location_coordinates&max=5000&structure=header&structure=content&format=CSV")
+```
+API - documentation: https://labs.statsbiblioteket.dk/labsapi/api//api-docs?url=/labsapi/api/openapi.yaml#/labsapi/exportFields
+
+
+pwa	Predicted Word Accuracy for the OCR text on a scale from 0 to 100, where 100 is perfect.
+cer	Character Error Rate (estimated) of the OCR on a scale from 0 to 1, where 0 is perfect
+
+# Mean for the entire year: 
+## Pwa: 
+
+```{r}
+croix %>% 
+  summarise(mean_pwa = mean(pwa))
+```
+## CER
+```{r}
+croix %>% 
+  summarise(mean_cer = mean(cer))
+```
+# Mean cer dispersed on month:
+
+```{r}
+croix %>% 
+  mutate(m = month(timestamp)) %>% 
+  group_by(m) %>% 
+  summarise(cer_mean = mean(cer))
+```
+
+# Does it get better over time? 
+
+
+Just timestamp, pwa and cer for st croix avis 1870 to 1885
+```{r}
+croix_ocr_quality_1870_1885 <- read_csv("https://labs.statsbiblioteket.dk/labsapi/api/aviser/export/fields?query=py%3A%5B1870%20TO%201885%5D%20and%20familyId%3Astcroixavisdvi&fields=timestamp&fields=pwa&fields=cer&max=-1&structure=header&structure=content&format=CSV")
+```
+```{r}
+croix_ocr_quality_1870_1885 %>% 
+  mutate(year = year(timestamp)) %>% 
+  group_by(year) %>% 
+  summarise(cer_mean = mean(cer))
+```
+
+```{r}
+croix_ocr_quality_1870_1885 %>% 
+  mutate(year = year(timestamp)) %>% 
+  group_by(year) %>% 
+  summarise(cer_mean = mean(cer)) %>% 
+  ggplot(aes(x = year, y = cer_mean)) +
+  geom_line(color = "darkred", size = 1) +
+  geom_point(color = "red", size = 2) +
+  labs(
+    title = "Mean CER by Year",
+    x = "Year",
+    y = "Mean CER"
+  ) +
+  theme_minimal()
+```
+
