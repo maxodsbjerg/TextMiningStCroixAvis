@@ -1,4 +1,5 @@
 # Text Mining St. Croix Avis
+<img src="./pics/CroixAvisFrontPage.png" alt="Front page of St. Croix Avis" width="600"/>
 Material for the introduction to text mining workshop made for those interested in learning about digital methods and experience how coding can be used to work on larger bodies of text. The workshops and the material was conceived as a introduction to text mining for students and other interested within the humanities. Since people from other fields have found the interested and they are more than welcome, but should be aware of the humanistic point of departure. 
 
 ## Aim
